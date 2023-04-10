@@ -50,7 +50,7 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (user === null) {
-        throw new DataNotFoundError(`Пользователь c _id ${req.params.userId} не найден.`)
+        throw new DataNotFoundError(`Пользователь c _id ${req.user._id} не найден.`)
       }
       res.send(user);
     })
