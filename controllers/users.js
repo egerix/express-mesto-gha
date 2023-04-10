@@ -22,7 +22,6 @@ module.exports.createUser = (req, res) => {
   const {name, about, avatar} = req.body;
   UserModel.create({name, about, avatar})
     .then((user) => {
-      throw Error()
       res.send(user);
     })
     .catch(err => handleError(err, res));

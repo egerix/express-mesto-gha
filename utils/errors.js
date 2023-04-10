@@ -14,16 +14,14 @@ function handleError(err, res) {
       .send({
         message: err.message,
       });
-  }
-  else if (err.name === 'ValidationError') {
+  } else if (err.name === 'ValidationError' || err.name === 'CastError') {
     res
       .status(CLIENT_ERROR)
       .send({
         message: 'Переданы некорректные данные.',
       });
     return;
-  }
-  else {
+  } else {
     res
       .status(SERVER_ERROR)
       .send({message: 'Ошибка на сервере.'});
