@@ -31,10 +31,11 @@ module.exports.createUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   UserModel.findByIdAndUpdate(
     {_id: req.user._id},
-    {name: req.body.name, about: req.body.about}
+    {name: req.body.name, about: req.body.about},
+    { new: true, runValidators: true },
   ).then((user) => {
     if (user === null) {
-      throw new DataNotFoundError(`Пользователь c _id ${req.params.userId} не найден.`)
+      throw new DataNotFoundError(`Пользователь c _id ${req.user._id} не найден.`)
     }
     res.send(user);
   })
@@ -44,7 +45,8 @@ module.exports.updateUser = (req, res) => {
 module.exports.updateAvatar = (req, res) => {
   UserModel.findByIdAndUpdate(
     {_id: req.user._id},
-    {avatar: req.body.avatar}
+    {avatar: req.body.avatar},
+    { new: true, runValidators: true },
   )
     .then((user) => {
       if (user === null) {
