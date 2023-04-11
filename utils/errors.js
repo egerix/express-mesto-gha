@@ -1,9 +1,9 @@
-const {CLIENT_ERROR, NOT_FOUND_ERROR, SERVER_ERROR} = require("./statuses");
+const { CLIENT_ERROR, NOT_FOUND_ERROR, SERVER_ERROR } = require('./statuses');
 
 class DataNotFoundError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'DataNotFound'
+    this.name = 'DataNotFound';
   }
 }
 
@@ -20,11 +20,10 @@ function handleError(err, res) {
       .send({
         message: 'Переданы некорректные данные.',
       });
-    return;
   } else {
     res
       .status(SERVER_ERROR)
-      .send({message: 'Ошибка на сервере.'});
+      .send({ message: 'Ошибка на сервере.' });
   }
 }
 
