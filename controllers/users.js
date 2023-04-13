@@ -1,47 +1,66 @@
+const jwt = require('jsonwebtoken');
+const http2 = require('node:http2');
 const UserModel = require('../models/user');
-const { handleError, DataNotFoundError } = require('../utils/errors');
+const { NotFoundError, ConflictError } = require('../utils/errors');
 
 module.exports.getUsers = (req, res, next) => {
   UserModel.find({})
     .then((users) => res.send(users))
-    .catch((err) => handleError(err, res, next));
+    .catch((err) => next(err));
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   UserModel.findById({ _id: req.params.userId })
     .then((user) => {
       if (user === null) {
-        throw new DataNotFoundError(`Пользователь c _id ${req.params.userId} не найден.`);
+        throw new NotFoundError(`Пользователь c _id ${req.params.userId} не найден.`);
       }
       res.send(user);
     })
-    .catch((err) => handleError(err, res));
+    .catch((err) => next(err));
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   UserModel.create({ name, about, avatar })
     .then((user) => {
-      res.send(user);
+      const { password, ...safeUserData } = user;
+      res.status(http2.constants.HTTP_STATUS_CREATED).send(safeUserData);
     })
-    .catch((err) => handleError(err, res));
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
+  UserModel.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден');
+      }
+      return res.send(user);
+    })
+    .catch((err) => next(err));
+};
+
+module.exports.updateUser = (req, res, next) => {
   UserModel.findByIdAndUpdate(
     { _id: req.user._id },
     { name: req.body.name, about: req.body.about },
     { new: true, runValidators: true },
   ).then((user) => {
     if (user === null) {
-      throw new DataNotFoundError(`Пользователь c _id ${req.user._id} не найден.`);
+      throw new NotFoundError(`Пользователь c _id ${req.user._id} не найден.`);
     }
     res.send(user);
-  })
-    .catch((err) => handleError(err, res));
+  }).catch((err) => next(err));
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   UserModel.findByIdAndUpdate(
     { _id: req.user._id },
     { avatar: req.body.avatar },
@@ -49,9 +68,20 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (user === null) {
-        throw new DataNotFoundError(`Пользователь c _id ${req.user._id} не найден.`);
+        throw new NotFoundError(`Пользователь c _id ${req.user._id} не найден.`);
       }
       res.send(user);
     })
-    .catch((err) => handleError(err, res));
+    .catch((err) => next(err));
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return UserModel.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.send({ _id: token });
+    })
+    .catch((err) => next(err));
 };
