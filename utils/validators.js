@@ -1,5 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
-const urlRegex = require('url-regex')({exact: true});
+const urlRegex = require('url-regex')({ exact: true });
 
 module.exports = {
   signin: celebrate({

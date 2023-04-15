@@ -6,7 +6,7 @@ module.exports = (req, res, next) => {
 
   try {
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      throw new Error('Необходима авторизация');
+      throw new UnauthorizedError('Необходима авторизация');
     }
   } catch (err) {
     next(err);
