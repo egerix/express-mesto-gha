@@ -6,7 +6,7 @@ const validators = require('../utils/validators');
 
 router.get('/', getCards);
 
-router.delete('/:cardId', deleteCard);
+router.delete('/:cardId', validators.cardId, deleteCard);
 
 router.post('/', validators.card, createCard);
 
